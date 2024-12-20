@@ -9,12 +9,11 @@ Use cases:
 - Search functionality requiring exact phonetic matching
 - Integration with Grimoire key voice search functionality
 
-For general purpose transliteration with more intuitive phonetic mappings
-(e.g., using 'w' instead of 'v' for ਵ), see the practical transliteration system.
-
 TODO: Create gurmukhi_practical.py for a more accessible transliteration system
 with intuitive phonetic mappings (e.g., 'w' instead of 'v', 'aa' instead of 'ā')
 """
+
+from typing import Dict, Set
 
 class GurmukhiISO15919:
     """
@@ -23,7 +22,7 @@ class GurmukhiISO15919:
     """
     
     # Independent vowels
-    VOWELS = {
+    VOWELS: Dict[str, str] = {
         'ਅ': 'a', 'ਆ': 'ā', 'ਇ': 'i', 'ਈ': 'ī',
         'ਉ': 'u', 'ਊ': 'ū', 'ਏ': 'ē', 'ਐ': 'ai',
         'ਓ': 'ō', 'ਔ': 'au'
@@ -49,239 +48,105 @@ class GurmukhiISO15919:
     }
 
     # Special characters and modifiers
-    SPECIAL = {
-        '੍': '',    # virama/halant
-        'ੰ': 'ṁ',   # bindi (candrabindu)
-        'ਂ': 'ṃ',   # tippi (anusvara)
-        'ੱ': '',    # addak (gemination marker)
-        '਼': '',    # nukta
+    NUMBERS = {
         '੦': '0', '੧': '1', '੨': '2', '੩': '3', '੪': '4',
         '੫': '5', '੬': '6', '੭': '7', '੮': '8', '੯': '9'
     }
 
+    MODIFIERS = {
+        '੍': '',    # virama/halant
+        'ੰ': 'ṁ',   # tippi
+        'ਂ': 'ṃ',   # bindi
+        'ੱ': '',    # addak
+        '਼': '',    # nukta
+    }
+
     @classmethod
     def to_phonetic(cls, text: str) -> str:
-        """Convert Gurmukhi text to ISO 15919 transliteration."""
-        result = text
-        result = cls._handle_conjuncts(result)
-        result = cls._handle_vowel_sequences(result)
-        result = cls._handle_nasalization(result)
-        result = cls._handle_gemination(result)
-        return result
+        """Convert Gurmukhi text to ISO 15919 phonetic representation.
 
-    @classmethod
-    def _handle_conjuncts(cls, text: str) -> str:
-        """
-        Handle consonant conjuncts according to ISO 15919 rules.
-        Examples:
-            ਪ੍ਰ → pra
-            ਸ੍ਰੀ → srī
-            ਕ੍ਰਿਪਾ → kr̥pā
-            ਸ੍ਵ → sva
-            ਨ੍ਯ → nya
+        Nasalization marks are handled as follows:
+        - ੰ (tippi) → ṁ (dot above) - Used within words
+        - ਂ (bindi) → ṃ (dot below) - Used typically word-finally
+
+        Note: For tippi (ੰ) followed by ਮ, we explicitly mark the nasalization (ṁ)
+        on the first m. This may deviate from ISO 15919 standard (needs verification)
+        but maintains the distinction between tippi and addak cases.
         """
         result = ""
         i = 0
         while i < len(text):
             char = text[i]
             next_char = text[i + 1] if i + 1 < len(text) else None
+            next_next_char = text[i + 2] if i + 2 < len(text) else None
             
-            # Look ahead for virama sequences
-            if char in cls.CONSONANTS:
-                if (i + 1 < len(text) and text[i + 1] == '੍' and 
-                    i + 2 < len(text) and text[i + 2] in cls.CONSONANTS):
-                    
-                    # Get the consonants involved
-                    first_cons = cls.CONSONANTS[char]
-                    second_cons = cls.CONSONANTS[text[i + 2]]
-                    
-                    # Special handling for r as second consonant (r̥)
-                    if text[i + 2] == 'ਰ':
-                        result += first_cons + "r̥"
-                    else:
-                        result += first_cons + second_cons
-                    
-                    # Add implicit 'a' unless:
-                    # - Next character is a vowel mark
-                    # - Next character is a halant
-                    # - At end of word
-                    if (i + 3 < len(text) and 
-                        text[i + 3] not in cls.VOWEL_DIACRITICS and 
-                        text[i + 3] != '੍'):
-                        result += 'a'
-                    
-                    i += 3  # Skip both consonants and the virama
-                    continue
+            # Handle gemination (addak)
+            if next_char == 'ੱ':
+                if i + 2 < len(text):
+                    doubled_char = text[i + 2]
+                    if doubled_char in cls.CONSONANTS:
+                        if char in cls.CONSONANTS:
+                            # Add current consonant plus mukta 'a'
+                            result += cls.CONSONANTS[char] + 'a'
+                        elif char in cls.VOWEL_DIACRITICS:
+                            # add current vowel diacritic
+                            result += cls.VOWEL_DIACRITICS[char]
+                        else:
+                            # add current vowel
+                            result += cls.VOWELS[char]  
+                            
+                        # check if the consonant is aspirated
+                        if doubled_char in cls.CONSONANTS and len(cls.CONSONANTS[doubled_char]) > 1 and cls.CONSONANTS[doubled_char][1] == 'h':
+                            result += cls.CONSONANTS[doubled_char][0] + cls.CONSONANTS[doubled_char]
+                        else:
+                            result += cls.CONSONANTS[doubled_char] + cls.CONSONANTS[doubled_char]
+                        i += 3
+                        if text[i] not in cls.VOWEL_DIACRITICS:
+                            result += 'a'
+                        continue
+
+            # Handle nasalization
+            if next_char == 'ੰ':  # tippi
+                if char in cls.CONSONANTS:
+                    # Add current consonant 
+                    result += cls.CONSONANTS[char] + 'a'
+                elif char in cls.VOWEL_DIACRITICS:
+                    # Add current vowel diacritic
+                    result += cls.VOWEL_DIACRITICS[char]
+                else:
+                    # add current vowel
+                    result += cls.VOWELS[char]  
                 
-                # Regular consonant (not part of conjunct)
+                result += "ṁ"
+                i += 2
+                continue
+            elif next_char == 'ਂ':  # bindi
+                if char in cls.CONSONANTS:
+                    result += cls.CONSONANTS[char]
+                elif char in cls.VOWEL_DIACRITICS:
+                    result += cls.VOWEL_DIACRITICS[char]
+                else:
+                    result += cls.VOWELS[char]
+                result += "ṃ"
+                i += 2
+                continue
+
+            # Handle vowel sequences
+            if i > 0 and result[-1] =='a' and char in cls.VOWELS:
+                result += "'" + cls.VOWELS[char]
+                i += 1
+                continue
+
+            # Process regular characters
+            if char in cls.CONSONANTS:
                 result += cls.CONSONANTS[char]
-                # Add implicit 'a' unless followed by vowel mark or halant
-                if (next_char and 
-                    next_char not in cls.VOWEL_DIACRITICS and 
-                    next_char != '੍'):
+                if next_char not in cls.VOWEL_DIACRITICS and next_char != '੍':
                     result += 'a'
-            
-            # Handle other characters
-            elif char in cls.VOWELS:
-                result += cls.VOWELS[char]
             elif char in cls.VOWEL_DIACRITICS:
                 result += cls.VOWEL_DIACRITICS[char]
-            elif char in cls.SPECIAL and char != '੍':
-                result += cls.SPECIAL[char]
-            
-            i += 1
-            
-        return result
-
-    @classmethod
-    def _handle_vowel_sequences(cls, text: str) -> str:
-        """
-        Handle vowel sequences according to ISO 15919 rules.
-        Examples:
-            ਭਾਈ → bhāī (vowel sequence)
-            ਕੌਰ → kaur (true diphthong)
-            ਸਿਉ → si'u (separate vowels)
-            ਨਾਉਂ → nā'uṁ (separate vowels with nasalization)
-        """
-        result = ""
-        i = 0
-        while i < len(text):
-            char = text[i]
-            next_char = text[i + 1] if i + 1 < len(text) else None
-            
-            # Handle consonants
-            if char in cls.CONSONANTS:
-                result += cls.CONSONANTS[char]
-                
-                # Add implicit 'a' if:
-                # - No vowel sign follows
-                # - No virama follows
-                # - Not part of a conjunct
-                if (next_char and 
-                    next_char not in cls.VOWEL_DIACRITICS and 
-                    next_char != '੍' and
-                    next_char not in {'ੰ', 'ਂ', 'ੱ'}):  # Skip if next is a modifier
-                    result += 'a'
-            
-            # Handle independent vowels
             elif char in cls.VOWELS:
-                current_vowel = cls.VOWELS[char]
-                if next_char and next_char in cls.VOWEL_DIACRITICS:
-                    # Add apostrophe between certain vowel combinations
-                    next_vowel = cls.VOWEL_DIACRITICS[next_char]
-                    if cls._needs_separator(current_vowel, next_vowel):
-                        result += current_vowel + "'"
-                    else:
-                        result += current_vowel
-                else:
-                    result += current_vowel
-            
-            # Handle dependent vowel signs
-            elif char in cls.VOWEL_DIACRITICS:
-                current_vowel = cls.VOWEL_DIACRITICS[char]
-                if next_char and (next_char in cls.VOWELS or next_char in cls.VOWEL_DIACRITICS):
-                    next_vowel = (cls.VOWELS.get(next_char) or 
-                                cls.VOWEL_DIACRITICS.get(next_char))
-                    if cls._needs_separator(current_vowel, next_vowel):
-                        result += current_vowel + "'"
-                    else:
-                        result += current_vowel
-                else:
-                    result += current_vowel
-            
-            # Handle special characters
-            elif char in cls.SPECIAL:
-                result += cls.SPECIAL[char]
-            
+                result += cls.VOWELS[char]
+
             i += 1
-        
+
         return result
-
-    @staticmethod
-    def _needs_separator(v1: str, v2: str) -> bool:
-        """
-        Determine if two vowels need an apostrophe separator.
-        This happens when:
-        - First vowel ends in a, i, or u
-        - Second vowel starts with a, i, or u
-        - They're not part of a legitimate diphthong
-        """
-        legitimate_pairs = {
-            ('a', 'i'),  # ai
-            ('a', 'u'),  # au
-        }
-        
-        v1_end = v1[-1]
-        v2_start = v2[0]
-        
-        # Don't separate legitimate diphthongs
-        if (v1_end, v2_start) in legitimate_pairs:
-            return False
-            
-        # Add separator if both are basic vowels
-        return (v1_end in {'a', 'i', 'u', 'ā', 'ī', 'ū'} and 
-                v2_start in {'a', 'i', 'u', 'ā', 'ī', 'ū'})
-
-    @classmethod
-    def _handle_nasalization(cls, text: str) -> str:
-        """
-        Handle nasalization according to ISO 15919 rules:
-        - ੰ (bindi) -> ṁ
-        - ਂ (tippi) -> ṃ
-        - Special cases where nasalization affects surrounding vowels
-        Examples:
-            ਸਿੰਘ -> siṁgh
-            ਪੰਜਾਬੀ -> pañjābī
-        """
-        # TODO: Implement nasalization handling
-        pass
-
-    @classmethod
-    def _handle_gemination(cls, text: str) -> str:
-        """
-        Handle doubled consonants (ੱ addak) according to ISO 15919 rules.
-        Examples:
-            ਪੱਕਾ -> pakkā
-            ਚੱਲਣਾ -> callṇā
-            ਕੱਚਾ -> kaccā
-        """
-        result = ""
-        i = 0
-        while i < len(text):
-            if i + 1 < len(text) and text[i] == 'ੱ':
-                # Get the consonant that follows the addak
-                next_char = text[i + 1]
-                # Add the ISO transliteration of the consonant twice
-                if next_char in cls.CONSONANTS:
-                    result += cls.CONSONANTS[next_char] * 2
-                i += 2  # Skip both the addak and the consonant
-            else:
-                result += text[i]
-                i += 1
-        return result
-
-
-if __name__ == "__main__":
-    test_cases = [
-        "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ",      # Basic test with conjunct
-        "ਭਾਈ",                # Vowel sequence
-        "ਪ੍ਰੇਮ",               # Conjunct with vowel
-        "ਸਿੰਘ",               # Nasalization
-        "ਪੱਕਾ",               # Gemination
-        "ਪੰਜਾਬੀ",             # Multiple rules
-        "ਕ੍ਰਿਪਾ",              # Conjunct with short i
-        "ਸਿਉਂ",               # Vowel sequence with nasalization
-        "ਕੌਰ",       # kaur (true diphthong)
-        "ਸਿਉ",       # si'u (separate vowels)
-        "ਸਿਉਂ",      # si'uṁ (separate vowels with nasalization)
-        "ਭਾਉ",       # bhā'u (separate vowels)
-        "ਭਾਈ",       # bhāī
-        "ਨਾਉਂ",      # nā'uṁ
-        "ਗਾਉਣਾ",     # gā'uṇā
-    ]
-
-    for text in test_cases:
-        phonetic = GurmukhiISO15919.to_phonetic(text)  # Changed from GurmukhiPhonetics
-        print(f"Original: {text}")
-        print(f"ISO 15919: {phonetic}")
-        print("-" * 30)
