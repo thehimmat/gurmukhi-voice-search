@@ -1,6 +1,29 @@
-# Getting Started with Create React App
+# Gurmukhi Transliterator Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend for the Gurmukhi Transliterator application. It was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js version 14 or higher (recommended: 16.x or 18.x)
+- npm version 6 or higher
+
+You can check your versions by running:
+```bash
+node --version
+npm --version
+```
+
+### Installation Steps
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start the development server:
+```bash
+npm start
+```
 
 ## Available Scripts
 
@@ -38,6 +61,15 @@ If you aren’t satisfied with the build tool and configuration choices, you can
 Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+
+## Troubleshooting
+
+1. Make sure the backend server is running at `http://localhost:8000`
+2. If you see CORS errors, verify the backend is properly configured
+3. For dependency issues, try:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
 ## Learn More
 
