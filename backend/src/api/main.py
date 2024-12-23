@@ -5,6 +5,7 @@ from .voice_search import router as voice_search_router
 
 app = FastAPI(title="Gurmukhi Voice Search API")
 
+# Enable CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -15,4 +16,4 @@ app.add_middleware(
 
 # Mount both routers
 app.include_router(transliteration_router, prefix="/api/transliteration", tags=["transliteration"])
-app.include_router(voice_search_router, prefix="/api/voice-search", tags=["voice-search"]) 
+app.include_router(voice_search_router, prefix="/api/voice-search", tags=["voice-search"])

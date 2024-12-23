@@ -1,14 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './App.css';
 
 function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
+  const [error, setError] = useState('');
 
-  const handleTransliterate = async () => {
-    // TODO: We'll add the API call here later
-    console.log('Input text:', input);
+  const handleTransliterate = async (text: string) => {
+    if (!text.trim()) {
+      setResult('');
+      return;
+    }
+
+    try {
+      setError('');
+      const response = await axios.post('http://localhost:8000/api/transliteration/convert', {
+        text: text
+      });
+      setResult(response.data.result);
+    } catch (err) {
+      setError('Error converting text. Please try again.');
+      console.error('Error:', err);
+    }
   };
+
+  // Debounce the API calls to avoid too many requests
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleTransliterate(input);
+    }, 300); // Wait 300ms after last keystroke before converting
+
+    return () => clearTimeout(timeoutId);
+  }, [input]);
 
   return (
     <div className="App">
@@ -19,21 +43,15 @@ function App() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Enter Gurmukhi text here..."
-            rows={4}
+            rows={1}
             className="input-field"
           />
-          <button 
-            onClick={handleTransliterate}
-            className="convert-button"
-          >
-            Convert
-          </button>
-          {result && (
-            <div className="result-container">
-              <h3>Result:</h3>
-              <p className="result-text">{result}</p>
+          {error && <div className="error-message">{error}</div>}
+          <div className="result-container">
+            <div className="result-text">
+              {result || 'Type something to see conversion'}
             </div>
-          )}
+          </div>
         </div>
       </header>
     </div>

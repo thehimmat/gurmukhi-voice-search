@@ -49,11 +49,15 @@
 
 .input-field {
   width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #ccc;
+  min-height: 40px;
+  max-height: 200px;
+  padding: 10px 15px;
+  font-size: 18px;
+  border: 1px solid #dee2e6;
   border-radius: 4px;
   resize: vertical;
+  overflow-y: auto;
+  line-height: 1.5;
 }
 
 .convert-button {
@@ -74,12 +78,29 @@
 .result-container {
   width: 100%;
   text-align: left;
-  padding: 20px;
+  padding: 10px 15px;
   background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
   border-radius: 4px;
+  margin-top: 20px;
+  overflow-y: auto;
 }
 
 .result-text {
   font-size: 18px;
   word-wrap: break-word;
+  color: #000;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.result-text strong {
+  margin-right: 8px;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-top: 10px;
 }

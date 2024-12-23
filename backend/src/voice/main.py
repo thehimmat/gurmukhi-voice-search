@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 import numpy as np
 import jellyfish
-from gurmukhi_phonetics import GurmukhiPhonetics
+from src.transliteration.gurmukhi_phonetics import GurmukhiPhonetics
 
 # Load Models
 processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")

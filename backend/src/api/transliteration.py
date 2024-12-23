@@ -9,5 +9,7 @@ class TransliterationRequest(BaseModel):
 
 @router.post("/convert")
 async def transliterate(request: TransliterationRequest):
+    print("Received text:", request.text)
     result = GurmukhiISO15919.to_phonetic(request.text)
+    print("Converted to:", result)
     return {"result": result} 
