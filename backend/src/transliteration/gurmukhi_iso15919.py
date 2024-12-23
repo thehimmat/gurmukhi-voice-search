@@ -22,52 +22,12 @@ class GurmukhiISO15919:
     """
     
     # Special religious/sacred symbols
-    SPECIAL_SYMBOLS = {
+    SPECIAL_SYMBOLS: Dict[str, str] = {
         'ੴ': 'ika oaṁkāra'
     }
 
-    # Punctuation
-    PUNCTUATION = {
-        '॥': '||',    # Double Danda to double pipe
-        '।': '|',     # Single Danda to single pipe
-        ' ': ' ',     # Space
-        '.': '.',     # Western full stop
-        ',': ',',     # Comma
-        '?': '?',     # Question mark
-        '!': '!',     # Exclamation
-        '"': '"',     # Double quote
-        "'": "'",     # Single quote
-        '\n': '\n',   # Preserve line breaks
-    }
-
-    # Independent vowels
-    VOWELS: Dict[str, str] = {
-        'ਅ': 'a', 'ਆ': 'ā', 'ਇ': 'i', 'ਈ': 'ī',
-        'ਉ': 'u', 'ਊ': 'ū', 'ਏ': 'ē', 'ਐ': 'ai',
-        'ਓ': 'ō', 'ਔ': 'au'
-    }
-
-    # Dependent vowel signs (matras)
-    VOWEL_DIACRITICS = {
-        'ਾ': 'ā', 'ਿ': 'i', 'ੀ': 'ī',
-        'ੁ': 'u', 'ੂ': 'ū', 'ੇ': 'ē',
-        'ੈ': 'ai', 'ੋ': 'ō', 'ੌ': 'au'
-    }
-
-    # Complete consonant mapping
-    CONSONANTS = {
-        'ਕ': 'k', 'ਖ': 'kh', 'ਗ': 'g', 'ਘ': 'gh', 'ਙ': 'ṅ',
-        'ਚ': 'c', 'ਛ': 'ch', 'ਜ': 'j', 'ਝ': 'jh', 'ਞ': 'ñ',
-        'ਟ': 'ṭ', 'ਠ': 'ṭh', 'ਡ': 'ḍ', 'ਢ': 'ḍh', 'ਣ': 'ṇ',
-        'ਤ': 't', 'ਥ': 'th', 'ਦ': 'd', 'ਧ': 'dh', 'ਨ': 'n',
-        'ਪ': 'p', 'ਫ': 'ph', 'ਬ': 'b', 'ਭ': 'bh', 'ਮ': 'm',
-        'ਯ': 'y', 'ਰ': 'r', 'ਲ': 'l', 'ਵ': 'v', 
-        'ਸ': 's', 'ਸ਼': 'ś', 'ਹ': 'h',
-        'ੜ': 'ṛ', 'ਲ਼': 'ḷ'
-    }
-
     # Numbers
-    NUMBERS = {
+    NUMBERS: Dict[str, str] = {
         '੦': '0',
         '੧': '1',
         '੨': '2',
@@ -80,7 +40,92 @@ class GurmukhiISO15919:
         '੯': '9'
     }
 
-    MODIFIERS = {
+    # Independent vowels
+    VOWELS: Dict[str, str] = {
+        'ਅ': 'a', 
+        'ਆ': 'ā', 
+        'ਇ': 'i', 
+        'ਈ': 'ī',
+        'ਉ': 'u', 
+        'ਊ': 'ū', 
+        'ਏ': 'ē', 
+        'ਐ': 'ai',
+        'ਓ': 'ō', 
+        'ਔ': 'au'
+    }
+
+    # Dependent vowel signs (matras)
+    VOWEL_DIACRITICS: Dict[str, str] = {
+        'ਾ': 'ā', 
+        'ਿ': 'i', 
+        'ੀ': 'ī',
+        'ੁ': 'u', 
+        'ੂ': 'ū', 
+        'ੇ': 'ē',
+        'ੈ': 'ai', 
+        'ੋ': 'ō', 
+        'ੌ': 'au'
+    }
+
+    # Complete consonant mapping
+    CONSONANTS: Dict[str, str] = {
+        'ਸ': 's', 
+        'ਹ': 'h',
+        'ਕ': 'k', 
+        'ਖ': 'kh', 
+        'ਗ': 'g', 
+        'ਘ': 'gh', 
+        'ਙ': 'ṅ',
+        'ਚ': 'c', 
+        'ਛ': 'ch', 
+        'ਜ': 'j', 
+        'ਝ': 'jh', 
+        'ਞ': 'ñ',
+        'ਟ': 'ṭ', 
+        'ਠ': 'ṭh', 
+        'ਡ': 'ḍ', 
+        'ਢ': 'ḍh', 
+        'ਣ': 'ṇ',
+        'ਤ': 't', 
+        'ਥ': 'th', 
+        'ਦ': 'd', 
+        'ਧ': 'dh', 
+        'ਨ': 'n',
+        'ਪ': 'p', 
+        'ਫ': 'ph', 
+        'ਬ': 'b', 
+        'ਭ': 'bh', 
+        'ਮ': 'm',
+        'ਯ': 'y', 
+        'ਰ': 'r', 
+        'ਲ': 'l', 
+        'ਵ': 'v', 
+        'ੜ': 'ṛ', 
+        # Persian-influenced letters
+        'ਖ਼': 'k̲h',      # khakha with line below (خ) - distinguished from ਖ (kh)
+        'ਗ਼': 'ġh',      # ghagha with dot above (غ) - distinguished from ਘ (gh)
+        'ਜ਼': 'z',       # zaza (ز)
+        'ਫ਼': 'f',       # fafa (ف)
+        'ਸ਼': 'sh',      # shasha (ش)
+        'ਲ਼': 'ḷ',       # lalla with dot
+        'ਕ਼': 'q',       # qaqqa (ق)
+    }
+
+    # Punctuation
+    PUNCTUATION: Dict[str, str] = {
+        '॥': '||',    # Double Danda to double pipe
+        '।': '|',     # Single Danda to single pipe
+        ' ': ' ',     # Space
+        '.': '.',     # Western full stop
+        ',': ',',     # Comma
+        '?': '?',     # Question mark
+        '!': '!',     # Exclamation
+        '"': '"',     # Double quote
+        "'": "'",     # Single quote
+        '\n': '\n',   # Preserve line breaks
+    }
+
+    MODIFIERS: Dict[str, str] = {
         '੍': '',    # virama/halant
         'ੰ': 'ṁ',   # tippi
         'ਂ': 'ṃ',   # bindi

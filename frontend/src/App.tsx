@@ -4,8 +4,8 @@ import './App.css';
 
 function App() {
   const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
+  const [output, setOutput] = useState('');
+  const [style, setStyle] = useState('iso15919');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -14,32 +14,31 @@ function App() {
     }
   }, []);
 
-  const handleTransliterate = async (text: string) => {
-    if (!text.trim()) {
-      setResult('');
-      return;
-    }
-
+  const transliterate = async (text: string, transliterationStyle: string) => {
     try {
-      setError('');
-      const response = await axios.post('http://localhost:8000/api/transliteration/convert', {
-        text: text
+      const response = await fetch('http://localhost:8000/transliterate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          text,
+          style: transliterationStyle
+        }),
       });
-      setResult(response.data.result);
-    } catch (err) {
-      setError('Error converting text. Please try again.');
-      console.error('Error:', err);
+      const data = await response.json();
+      setOutput(data.result);
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
-  // Debounce the API calls to avoid too many requests
+  // Add useEffect to handle initial transliteration and style changes
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      handleTransliterate(input);
-    }, 300); // Wait 300ms after last keystroke before converting
-
-    return () => clearTimeout(timeoutId);
-  }, [input]);
+    if (input) {
+      transliterate(input, style);
+    }
+  }, [input, style]); // Trigger when either input or style changes
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -52,6 +51,32 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Gurmukhi Transliterator</h1>
+        <div className="style-selector">
+          <label>
+            <input
+              type="radio"
+              value="iso15919"
+              checked={style === 'iso15919'}
+              onChange={(e) => {
+                setStyle(e.target.value);
+                transliterate(input, e.target.value);
+              }}
+            />
+            ISO 15919
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="practical"
+              checked={style === 'practical'}
+              onChange={(e) => {
+                setStyle(e.target.value);
+                transliterate(input, e.target.value);
+              }}
+            />
+            Practical
+          </label>
+        </div>
         <div className="converter-container">
           <textarea
             ref={inputRef}
@@ -61,10 +86,9 @@ function App() {
             rows={4}
             className="input-field"
           />
-          {error && <div className="error-message">{error}</div>}
           <div className="result-container">
             <div className="result-text" style={{ whiteSpace: 'pre-wrap' }}>
-              {result || 'Type something to see conversion'}
+              {output || 'Type something to see conversion'}
             </div>
           </div>
         </div>

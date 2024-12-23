@@ -114,3 +114,21 @@
 h1 {
   margin: 1em 0;
 }
+
+.style-selector {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.style-selector label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.style-selector input[type="radio"] {
+  cursor: pointer;
+}
