@@ -21,6 +21,25 @@ class GurmukhiISO15919:
     Implements strict ISO 15919 standard for scholarly transliteration.
     """
     
+    # Special religious/sacred symbols
+    SPECIAL_SYMBOLS = {
+        'ੴ': 'ika oaṁkāra'
+    }
+
+    # Punctuation
+    PUNCTUATION = {
+        '॥': '||',    # Double Danda to double pipe
+        '।': '|',     # Single Danda to single pipe
+        ' ': ' ',     # Space
+        '.': '.',     # Western full stop
+        ',': ',',     # Comma
+        '?': '?',     # Question mark
+        '!': '!',     # Exclamation
+        '"': '"',     # Double quote
+        "'": "'",     # Single quote
+        '\n': '\n',   # Preserve line breaks
+    }
+
     # Independent vowels
     VOWELS: Dict[str, str] = {
         'ਅ': 'a', 'ਆ': 'ā', 'ਇ': 'i', 'ਈ': 'ī',
@@ -47,10 +66,18 @@ class GurmukhiISO15919:
         'ੜ': 'ṛ', 'ਲ਼': 'ḷ'
     }
 
-    # Special characters and modifiers
+    # Numbers
     NUMBERS = {
-        '੦': '0', '੧': '1', '੨': '2', '੩': '3', '੪': '4',
-        '੫': '5', '੬': '6', '੭': '7', '੮': '8', '੯': '9'
+        '੦': '0',
+        '੧': '1',
+        '੨': '2',
+        '੩': '3',
+        '੪': '4',
+        '੫': '5',
+        '੬': '6',
+        '੭': '7',
+        '੮': '8',
+        '੯': '9'
     }
 
     MODIFIERS = {
@@ -61,8 +88,8 @@ class GurmukhiISO15919:
         '਼': '',    # nukta
     }
 
-    @classmethod
-    def to_phonetic(cls, text: str) -> str:
+    @staticmethod
+    def to_phonetic(text: str) -> str:
         """Convert Gurmukhi text to ISO 15919 phonetic representation.
 
         Nasalization marks are handled as follows:
@@ -73,9 +100,33 @@ class GurmukhiISO15919:
         on the first m. This may deviate from ISO 15919 standard (needs verification)
         but maintains the distinction between tippi and addak cases.
         """
-        result = ""
+        # Debugging: print character codes
+        print("Character codes:")
+        for char in text:
+            print(f"'{char}': {ord(char)}")
+        
+        result = ''
+        
         i = 0
         while i < len(text):
+            # Check for special symbols first
+            if text[i] in GurmukhiISO15919.SPECIAL_SYMBOLS:
+                result += GurmukhiISO15919.SPECIAL_SYMBOLS[text[i]]
+                i += 1
+                continue
+            
+            # Check for punctuation (including line breaks)
+            if text[i] in GurmukhiISO15919.PUNCTUATION:
+                result += GurmukhiISO15919.PUNCTUATION[text[i]]
+                i += 1
+                continue
+                
+            # Check for numbers
+            if text[i] in GurmukhiISO15919.NUMBERS:
+                result += GurmukhiISO15919.NUMBERS[text[i]]
+                i += 1
+                continue
+                
             char = text[i]
             next_char = text[i + 1] if i + 1 < len(text) else None
             next_next_char = text[i + 2] if i + 2 < len(text) else None
@@ -84,68 +135,68 @@ class GurmukhiISO15919:
             if next_char == 'ੱ':
                 if i + 2 < len(text):
                     doubled_char = text[i + 2]
-                    if doubled_char in cls.CONSONANTS:
-                        if char in cls.CONSONANTS:
+                    if doubled_char in GurmukhiISO15919.CONSONANTS:
+                        if char in GurmukhiISO15919.CONSONANTS:
                             # Add current consonant plus mukta 'a'
-                            result += cls.CONSONANTS[char] + 'a'
-                        elif char in cls.VOWEL_DIACRITICS:
+                            result += GurmukhiISO15919.CONSONANTS[char] + 'a'
+                        elif char in GurmukhiISO15919.VOWEL_DIACRITICS:
                             # add current vowel diacritic
-                            result += cls.VOWEL_DIACRITICS[char]
+                            result += GurmukhiISO15919.VOWEL_DIACRITICS[char]
                         else:
                             # add current vowel
-                            result += cls.VOWELS[char]  
+                            result += GurmukhiISO15919.VOWELS[char]  
                             
                         # check if the consonant is aspirated
-                        if doubled_char in cls.CONSONANTS and len(cls.CONSONANTS[doubled_char]) > 1 and cls.CONSONANTS[doubled_char][1] == 'h':
-                            result += cls.CONSONANTS[doubled_char][0] + cls.CONSONANTS[doubled_char]
+                        if doubled_char in GurmukhiISO15919.CONSONANTS and len(GurmukhiISO15919.CONSONANTS[doubled_char]) > 1 and GurmukhiISO15919.CONSONANTS[doubled_char][1] == 'h':
+                            result += GurmukhiISO15919.CONSONANTS[doubled_char][0] + GurmukhiISO15919.CONSONANTS[doubled_char]
                         else:
-                            result += cls.CONSONANTS[doubled_char] + cls.CONSONANTS[doubled_char]
+                            result += GurmukhiISO15919.CONSONANTS[doubled_char] + GurmukhiISO15919.CONSONANTS[doubled_char]
                         i += 3
-                        if text[i] not in cls.VOWEL_DIACRITICS:
+                        if text[i] not in GurmukhiISO15919.VOWEL_DIACRITICS:
                             result += 'a'
                         continue
 
             # Handle nasalization
             if next_char == 'ੰ':  # tippi
-                if char in cls.CONSONANTS:
+                if char in GurmukhiISO15919.CONSONANTS:
                     # Add current consonant 
-                    result += cls.CONSONANTS[char] + 'a'
-                elif char in cls.VOWEL_DIACRITICS:
+                    result += GurmukhiISO15919.CONSONANTS[char] + 'a'
+                elif char in GurmukhiISO15919.VOWEL_DIACRITICS:
                     # Add current vowel diacritic
-                    result += cls.VOWEL_DIACRITICS[char]
+                    result += GurmukhiISO15919.VOWEL_DIACRITICS[char]
                 else:
                     # add current vowel
-                    result += cls.VOWELS[char]  
+                    result += GurmukhiISO15919.VOWELS[char]  
                 
                 result += "ṁ"
                 i += 2
                 continue
             elif next_char == 'ਂ':  # bindi
-                if char in cls.CONSONANTS:
-                    result += cls.CONSONANTS[char]
-                elif char in cls.VOWEL_DIACRITICS:
-                    result += cls.VOWEL_DIACRITICS[char]
+                if char in GurmukhiISO15919.CONSONANTS:
+                    result += GurmukhiISO15919.CONSONANTS[char]
+                elif char in GurmukhiISO15919.VOWEL_DIACRITICS:
+                    result += GurmukhiISO15919.VOWEL_DIACRITICS[char]
                 else:
-                    result += cls.VOWELS[char]
+                    result += GurmukhiISO15919.VOWELS[char]
                 result += "ṃ"
                 i += 2
                 continue
 
             # Handle vowel sequences
-            if i > 0 and result[-1] =='a' and char in cls.VOWELS:
-                result += "'" + cls.VOWELS[char]
+            if i > 0 and result[-1] =='a' and char in GurmukhiISO15919.VOWELS:
+                result += "'" + GurmukhiISO15919.VOWELS[char]
                 i += 1
                 continue
 
             # Process regular characters
-            if char in cls.CONSONANTS:
-                result += cls.CONSONANTS[char]
-                if next_char not in cls.VOWEL_DIACRITICS and next_char != '੍':
+            if char in GurmukhiISO15919.CONSONANTS:
+                result += GurmukhiISO15919.CONSONANTS[char]
+                if next_char not in GurmukhiISO15919.VOWEL_DIACRITICS and next_char != '੍':
                     result += 'a'
-            elif char in cls.VOWEL_DIACRITICS:
-                result += cls.VOWEL_DIACRITICS[char]
-            elif char in cls.VOWELS:
-                result += cls.VOWELS[char]
+            elif char in GurmukhiISO15919.VOWEL_DIACRITICS:
+                result += GurmukhiISO15919.VOWEL_DIACRITICS[char]
+            elif char in GurmukhiISO15919.VOWELS:
+                result += GurmukhiISO15919.VOWELS[char]
 
             i += 1
 

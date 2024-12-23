@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -6,6 +6,13 @@ function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [error, setError] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleTransliterate = async (text: string) => {
     if (!text.trim()) {
@@ -34,21 +41,29 @@ function App() {
     return () => clearTimeout(timeoutId);
   }, [input]);
 
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    // Auto-resize
+    e.target.style.height = 'auto';  // Reset height
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 400)}px`;  // Set new height
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Gurmukhi to ISO 15919 Converter</h1>
+        <h1>Gurmukhi Transliterator</h1>
         <div className="converter-container">
           <textarea
+            ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleTextareaChange}
             placeholder="Enter Gurmukhi text here..."
-            rows={1}
+            rows={4}
             className="input-field"
           />
           {error && <div className="error-message">{error}</div>}
           <div className="result-container">
-            <div className="result-text">
+            <div className="result-text" style={{ whiteSpace: 'pre-wrap' }}>
               {result || 'Type something to see conversion'}
             </div>
           </div>

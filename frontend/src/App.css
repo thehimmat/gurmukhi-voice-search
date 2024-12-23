@@ -1,6 +1,10 @@
 .App {
   text-align: center;
   padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .App-logo {
@@ -21,8 +25,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 1vmin);
   color: white;
+  flex: 1;
+  overflow: hidden;
 }
 
 .App-link {
@@ -39,25 +45,27 @@
 }
 
 .converter-container {
-  width: 100%;
-  max-width: 600px;
+  width: 800px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   align-items: center;
+  max-height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 .input-field {
-  width: 100%;
-  min-height: 40px;
-  max-height: 200px;
-  padding: 10px 15px;
-  font-size: 18px;
-  border: 1px solid #dee2e6;
+  width: 800px;
+  min-height: 100px;
+  max-height: calc((100vh - 250px) / 2);
+  height: auto;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ccc;
   border-radius: 4px;
-  resize: vertical;
+  resize: none;
   overflow-y: auto;
-  line-height: 1.5;
+  box-sizing: border-box;
 }
 
 .convert-button {
@@ -76,24 +84,22 @@
 }
 
 .result-container {
-  width: 100%;
-  text-align: left;
-  padding: 10px 15px;
+  width: 800px;
+  min-height: 100px;
+  max-height: calc((100vh - 250px) / 2);
+  padding: 12px;
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 4px;
-  margin-top: 20px;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .result-text {
-  font-size: 18px;
-  word-wrap: break-word;
-  color: #000;
-  line-height: 1.5;
-  margin: 0;
-  padding: 0;
+  font-size: 16px;
+  white-space: pre-wrap;
   text-align: left;
+  color: #000;
 }
 
 .result-text strong {
@@ -103,4 +109,8 @@
 .error-message {
   color: #dc3545;
   margin-top: 10px;
+}
+
+h1 {
+  margin: 1em 0;
 }
