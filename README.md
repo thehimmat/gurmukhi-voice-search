@@ -8,39 +8,53 @@ A web application that converts Gurmukhi text to ISO 15919 format in real-time.
 ## Demo
 ![Gurmukhi Transliterator Demo](transliterationDemo.gif)
 
-### Quick Start - Transliterator
+## Getting Started
 
+### Option 1: Quick Start with Docker (Recommended)
+1. Install Docker and Docker Compose
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/gurmukhi-voice-search.git
+   cd gurmukhi-voice-search
+   ```
+3. Build and run the containers:
+   ```bash
+   docker-compose up --build
+   ```
+4. Access the application:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+### Option 2: Manual Setup
 #### Requirements
 - Python 3.8 or higher
 - Node.js 14 or higher
 - npm
 
-#### Running the Application
+#### Steps
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/gurmukhi-voice-search.git
-cd gurmukhi-voice-search
-```
+   ```bash
+   git clone https://github.com/yourusername/gurmukhi-voice-search.git
+   cd gurmukhi-voice-search
+   ```
 
 2. Start the backend:
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-pip install -r requirements.txt
-PYTHONPATH=$PYTHONPATH:. uvicorn src.api.main:app --reload --port 8000
-```
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   pip install -r requirements.txt
+   PYTHONPATH=$PYTHONPATH:. uvicorn src.api.main:app --reload --port 8000
+   ```
 
-2. In a new terminal, start the frontend:
-```bash
-cd frontend
-npm install
-npm start
-```
+3. In a new terminal, start the frontend:
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
 
-The transliterator will be available at http://localhost:3000
-
-See detailed setup instructions in:
+For detailed setup instructions, see:
 - [Frontend README](frontend/README.md)
 - [Backend README](backend/README.md)
 
