@@ -34,3 +34,12 @@ async def transliterate(request: TransliterationRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+"""
+TODO: API Enhancements
+- Add endpoint for custom transliteration rules
+- Add endpoint for IPA conversion
+- Add endpoint to retrieve complete mapping documentation
+- Add support for non-unicode input processing
+- Add validation for custom rule specifications
+"""

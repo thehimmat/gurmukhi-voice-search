@@ -47,6 +47,17 @@ function App() {
     e.target.style.height = `${Math.min(e.target.scrollHeight, 400)}px`;  // Set new height
   };
 
+  /**
+   * TODO: UI/UX Improvements
+   * - Add Gurmukhi keyboard component for easier input
+   * - Add rules/mappings display panel for each transliteration system
+   * - Add custom rule configuration interface
+   * - Add IPA output option
+   * - Add non-unicode input support
+   * - Add visual feedback for implied 'a' vowels
+   * - Add documentation panel for each transliteration system
+   */
+
   return (
     <div className="App">
       <header className="App-header">

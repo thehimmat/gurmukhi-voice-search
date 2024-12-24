@@ -14,6 +14,15 @@ Use cases:
 """
 
 class GurmukhiPractical:
+    """
+    TODO: Transliteration System Improvements
+    - Improve handling of implied 'a' vowel based on context and pronunciation rules
+    - Add support for non-unicode Gurmukhi input (e.g., ASCII-based input)
+    - Implement IPA (International Phonetic Alphabet) output option
+    - Add support for custom transliteration rules specified by user
+    - Document and display complete mapping rules for practical system
+    """
+
     # Practical transliteration mappings with more intuitive phonetics
     # Special religious/sacred symbols
     SPECIAL_SYMBOLS = {
