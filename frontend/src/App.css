@@ -24,11 +24,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 1vmin);
+  justify-content: flex-start;
   color: white;
-  flex: 1;
-  overflow: hidden;
+  padding: 20px;
 }
 
 .App-link {
@@ -131,4 +129,80 @@ h1 {
 
 .style-selector input[type="radio"] {
   cursor: pointer;
+}
+
+.transliterator {
+  width: 100%;
+  height: 100%;
+}
+
+.voice-search {
+  padding: 20px;
+  text-align: center;
+}
+
+.voice-controls {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.record-button {
+  padding: 15px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 25px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.record-button.recording {
+  background-color: #f44336;
+  animation: pulse 1.5s infinite;
+}
+
+.status-indicator {
+  font-size: 16px;
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+.search-results {
+  margin-top: 30px;
+  width: 80%;
+  max-width: 600px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.search-results ul {
+  list-style: none;
+  padding: 0;
+}
+
+.search-results li {
+  padding: 15px;
+  margin: 10px 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.search-results li div {
+  margin: 5px 0;
+}
+
+.search-results li strong {
+  color: #4CAF50;
+  margin-right: 8px;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
