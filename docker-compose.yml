@@ -1,8 +1,10 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
@@ -11,14 +13,13 @@ services:
       - PYTHONPATH=/app
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - WATCHPACK_POLLING=true
-      - WDS_SOCKET_PORT=0
     depends_on:
       - backend 

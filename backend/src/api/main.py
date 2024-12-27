@@ -6,6 +6,9 @@ from ..transliteration.gurmukhi_practical import GurmukhiPractical
 import speech_recognition as sr
 import io
 import wave
+import tempfile
+import os
+from src.voice.main import process_audio
 
 app = FastAPI()
 
@@ -48,47 +51,38 @@ SAMPLE_SENTENCES = [
 ]
 
 @app.post("/process_audio")
-async def process_audio(audio: UploadFile = File(...)):
+async def handle_audio(audio: UploadFile = File(...)):
     try:
-        # Read the uploaded file
+        print("Receiving audio file...")
         contents = await audio.read()
-        audio_bytes = io.BytesIO(contents)
+        print(f"Received audio size: {len(contents)} bytes")
 
-        # Initialize recognizer
-        recognizer = sr.Recognizer()
-        
-        # Convert to AudioFile
-        with sr.AudioFile(audio_bytes) as source:
-            audio_data = recognizer.record(source)
+        # Save the audio file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+            temp_file.write(contents)
+            temp_path = temp_file.name
+            print(f"Saved temporary file: {temp_path}")
+
+        try:
+            # Process the audio using your existing function
+            print("Processing audio with wav2vec2...")
+            result = process_audio(temp_path)
+            print(f"Processing complete. Transcription: {result['transcription']}")
             
-            try:
-                # Convert speech to text
-                text = recognizer.recognize_google(audio_data)
-                print(f"Recognized text: {text}")
-
-                # Simple matching logic
-                matches = []
-                for sentence in SAMPLE_SENTENCES:
-                    # Calculate simple similarity
-                    similarity = sum(1 for a, b in zip(text.lower(), sentence.lower()) if a == b)
-                    matches.append({
-                        "text": sentence,
-                        "similarity_score": similarity,
-                        "reason": f"Matched {similarity} characters"
-                    })
-
-                # Sort by similarity score
-                matches.sort(key=lambda x: x["similarity_score"], reverse=True)
-                top_matches = matches[:3]
-
-                return {"top_matches": top_matches}
-            except sr.UnknownValueError:
-                return {"error": "Could not understand audio"}
-            except sr.RequestError as e:
-                return {"error": f"Could not request results; {str(e)}"}
-
+            # Clean up the temporary file
+            os.unlink(temp_path)
+            
+            return result
+        except Exception as e:
+            print(f"Error during audio processing: {e}")
+            return {"error": f"Audio processing failed: {str(e)}"}
+        finally:
+            # Ensure temp file is removed even if processing fails
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+                
     except Exception as e:
-        print(f"Error processing audio: {e}")
+        print(f"Error handling upload: {e}")
         return {"error": str(e)}
 
 """
