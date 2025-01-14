@@ -1,13 +1,16 @@
-FROM node:16-alpine
-
+# Development stage
+FROM node:latest as development
 WORKDIR /app
-
-# Copy package files
-COPY package*.json .
-RUN npm install --legacy-peer-deps
-
-# Copy the rest of the application
+COPY package*.json ./
+RUN npm install
 COPY . .
+ENV NODE_ENV=development
+CMD ["npm", "start"]
 
-# Start the development server instead of building
-CMD ["npm", "start"] 
+# Production stage (if needed)
+FROM node:latest as production
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY . .
+RUN npm run build 

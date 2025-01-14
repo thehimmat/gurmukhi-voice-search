@@ -1,62 +1,59 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import '../App.css';
+import React, { useState, useRef, useEffect } from 'react';
+import './Transliterator.css';
 
-function Transliterator() {
+interface TransliteratorProps {
+  // Add any props if needed
+}
+
+const Transliterator: React.FC<TransliteratorProps> = () => {
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState('');
   const [style, setStyle] = useState('iso15919');
+  const [output, setOutput] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
+  
+  // Add debounce to wait for user to finish typing
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
+    const timeoutId = setTimeout(() => {
+      // Always call transliterate, even with empty input
+      transliterate(input, style);
+    }, 300); // Wait 300ms after last keystroke
 
-  const transliterate = async (text: string, transliterationStyle: string) => {
+    return () => clearTimeout(timeoutId);
+  }, [input, style]);
+
+  const transliterate = async (text: string, style: string) => {
     try {
+      // If input is empty, clear output immediately
+      if (!text) {
+        setOutput('');
+        return;
+      }
+
       const response = await fetch('http://localhost:8000/transliterate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          text,
-          style: transliterationStyle
-        }),
+        body: JSON.stringify({ text, style }),
       });
+      
       const data = await response.json();
-      setOutput(data.result);
+      if (data.result !== undefined) {  // Check for undefined instead of truthiness
+        setOutput(data.result);
+      } else if (data.error) {
+        setOutput(`Error: ${data.error}`);
+      }
     } catch (error) {
-      console.error('Error:', error);
+      setOutput('Error connecting to server');
     }
   };
-
-  // Add useEffect to handle initial transliteration and style changes
-  useEffect(() => {
-    if (input) {
-      transliterate(input, style);
-    }
-  }, [input, style]); // Trigger when either input or style changes
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    // Auto-resize
-    e.target.style.height = 'auto';  // Reset height
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 400)}px`;  // Set new height
+    const newText = e.target.value;
+    setInput(newText);
+    // Remove immediate transliterate call
+    // transliterate will be called by useEffect after delay
   };
-
-  /**
-   * TODO: UI/UX Improvements
-   * - Add Gurmukhi keyboard component for easier input
-   * - Add rules/mappings display panel for each transliteration system
-   * - Add custom rule configuration interface
-   * - Add IPA output option
-   * - Add non-unicode input support
-   * - Add visual feedback for implied 'a' vowels
-   * - Add documentation panel for each transliteration system
-   */
 
   return (
     <div className="transliterator">
@@ -87,13 +84,27 @@ function Transliterator() {
             />
             Practical
           </label>
+          <label>
+            <input
+              type="radio"
+              value="legacy"
+              checked={style === 'legacy'}
+              onChange={(e) => {
+                setStyle(e.target.value);
+                transliterate(input, e.target.value);
+              }}
+            />
+            Roman Font to Gurmukhi
+          </label>
         </div>
         <div className="converter-container">
           <textarea
             ref={inputRef}
             value={input}
             onChange={handleTextareaChange}
-            placeholder="Enter Gurmukhi text here..."
+            placeholder={style === 'legacy' ? 
+              "Enter Roman font text (AnmolLipi) here..." : 
+              "Enter Gurmukhi text here..."}
             rows={4}
             className="input-field"
           />
@@ -106,6 +117,6 @@ function Transliterator() {
       </header>
     </div>
   );
-}
+};
 
 export default Transliterator;
