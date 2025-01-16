@@ -11,22 +11,90 @@ allowing them to work with both Unicode and legacy input formats.
 """
 
 import logging
+import unicodedata
 
 class GurmukhiLegacy:
     # Special combinations that need to be processed first
     SPECIAL_COMBINATIONS = {
-        '<>': 'ੴ',  # Ik Onkar
-        '[]': '॥',   # Double danda
-        ']': '॥',    # Single closing bracket to double danda
-        '[': '।',    # Single opening bracket to single danda
+        '<>': 'ੴ',    # Ik Onkar
+        'ÅÆ': 'ੴ',    # Ik Onkar (alternative)
+        '[]': '॥',     # Double danda
+        ']': '॥',      # Single closing bracket to double danda
+        '[': '।',      # Single opening bracket to single danda
+        'W': 'ਾਂ',     # pre-composed kanna + bindi
+        '`N': 'ਁ',     # udaat
+        '`ˆ': 'ਁ',     # udaat (alternative)
+        '~N': 'ਁ',     # udaat (alternative)
+        '~ˆ': 'ਁ',     # udaat (alternative)
+        'ƒ': 'ਨੂੰ',    # noon + dulainkar + tippi
+        
+        # Vowel combinations with ਅ (airha)
+        'Aw': 'ਆ',     # airha + kanna
+        'AW': 'ਆਂ',    # airha + kanna + bindi
+        'AY': 'ਐ',     # airha + dulavan
+        'AO': 'ਔ',     # airha + kanaura
+        
+        # Vowel combinations with ੲ (iri)
+        'ie': 'ਇ',   # iri + sihari
+        'eI': 'ਈ',   # iri + bihari
+        'ey': 'ਏ',   # iri + lavan
+        
+        # Vowel combinations with ੳ (oora)
+        'au': 'ਉ',   # oora + aunkar
+        'aU': 'ਊ',   # oora + dulainkar
+        'E': 'ਓ',   # oora + hora
+        
+        # Persian character combinations (alternatives to pre-built characters)
+        'sæ': '\u0A36',    # Alternative to 'S' (ਸ਼)
+        'Kæ': '\u0A59',    # Alternative to '^' (ਖ਼)
+        'gæ': '\u0A5A',    # Alternative to 'Z' (ਗ਼)
+        'jæ': '\u0A5B',    # Alternative to 'z' (ਜ਼)
+        'Pæ': '\u0A5E',    # Alternative to '&' (ਫ਼)
+        'læ': '\u0A33',    # Alternative to 'L' (ਲ਼)
+        
+        # Persian combinations without pre-built alternatives
+        'kæ': 'ਕ਼',    # k + nukta (no pre-built version)
+        'Aæ': 'ਅ਼',    # A + nukta (no pre-built version)
     }
 
     # AnmolLipi font mapping for single characters
     ANMOLLIPI_MAP = {
-        # Vowel bearers
-        'A': 'ਅ',
-        'e': 'ਇ',
-        'E': 'ਈ',
+        # Base vowel carriers
+        'a': 'ੳ',     # oora
+        'A': 'ਅ',     # airha
+        'e': 'ੲ',     # iri
+
+        # Vowel marks with alternatives
+        'w': 'ਾ',     # kanna
+        'i': 'ਿ',     # sihari
+        'I': 'ੀ',     # bihari
+        'u': 'ੁ',     # aunkar
+        'ü': 'ੁ',     # aunkar (alternative)
+        'U': 'ੂ',     # dulainkar
+        '¨': 'ੂ',     # dulainkar (alternative)
+        'y': 'ੇ',     # lavan
+        'Y': 'ੈ',     # dulavan
+        'o': 'ੋ',     # hora
+        'O': 'ੌ',     # kanaura
+
+        # Special marks with alternatives
+        'M': 'ੰ',     # tippi
+        'µ': 'ੰ',     # tippi (alternative)
+        'N': 'ਂ',     # bindi
+        'ˆ': 'ਂ',     # bindi (alternative)
+        'æ': '਼',     # nukta
+        'Ú': 'ਃ',     # visarg
+        
+        # Single character Ik Onkar
+        '¡': 'ੴ',     # Ik Onkar
+        
+        # Alternative characters that map to same output
+        '<': 'Å',     # Maps to Å
+        'Å': 'Å',     # Ura
+        '>': 'Æ',     # Maps to Æ
+        'Æ': 'Æ',     # Ura
+        
+        # Consonants
         's': 'ਸ',
         'h': 'ਹ',
         'k': 'ਕ',
@@ -56,28 +124,16 @@ class GurmukhiLegacy:
         'm': 'ਮ',
         'X': 'ਯ',
         'r': 'ਰ',
-        'R': '੍ਰ',  # Subjoined r (rakar)
         'l': 'ਲ',
         'v': 'ਵ',
         'V': 'ੜ',
-
-        # Vowel marks (laga matra)
-        'w': 'ਾ',   # kanna
-        'i': 'ਿ',   # sihari
-        'I': 'ੀ',   # bihari
-        'u': 'ੁ',   # aunkar
-        'U': 'ੂ',   # dulainkar
-        'y': 'ੇ',   # lavan
-        'Y': 'ੈ',   # dulavan
-        'o': 'ੋ',   # hora
-        'O': 'ੌ',   # kanaura
 
         # Special characters
         'M': 'ੰ',   # tippi
         'N': 'ਂ',   # bindi
         '`': 'ੱ',   # addak
-        '~': '੍',   # halant/virama
-        '@': '॥',   # double danda
+        '~': 'ੱ',   # addak (alternative)
+        '@': '੍',   # halant/virama
         '¤': 'ੴ',   # Ek Onkar
         
         # Numbers
@@ -95,6 +151,32 @@ class GurmukhiLegacy:
         # Preserve spaces and newlines
         ' ': ' ',
         '\n': '\n',
+
+        # Persian characters (using pre-composed characters)
+        'L': 'ਲ਼',    # Laam (pre-composed)
+        'S': 'ਸ਼',    # Sheen (pre-composed)
+        'z': 'ਜ਼',    # Zaal (pre-composed)
+        'Z': 'ਗ਼',    # Ghayn (pre-composed)
+        '^': 'ਖ਼',    # Khay (pre-composed)
+        '&': 'ਫ਼',    # Faa (pre-composed)
+
+        # Move E to ANMOLLIPI_MAP
+        'E': 'ਓ',     # oora + hora (direct mapping)
+    }
+
+    # Special subjoined characters in AnmolLipi
+    SUBJOINED_MAP = {
+        'H': '੍ਹ',    # pair haha
+        '†': '੍ਟ',    # pair tainka
+        '˜': '੍ਨ',    # pair nanna
+        'œ': '੍ਤ',    # pair tatta
+        'R': '੍ਰ',    # pair rara
+        'Î': '੍ਯ',    # sanyukt yayya
+        '´': 'ੵ',     # yakash
+        'Ï': 'ੵ',     # yakash (alternate)
+        'Í': '੍ਵ',    # pair vava
+        'ç': '੍ਚ',    # pair chachha
+        '®': '੍ਰ',    # pair rara
     }
 
     @classmethod
@@ -107,19 +189,17 @@ class GurmukhiLegacy:
             raise ValueError(f"Unsupported encoding: {encoding}")
 
         logger = logging.getLogger(__name__)
-        logger.debug(f"Starting conversion of text length: {len(text)}")
-
-        # First pass: collect characters and handle vowel carriers
-        chars = []
-        i = 0
-        while i < len(text):
-            try:
-                # Check for special combinations first
+        
+        try:
+            chars = []
+            sihari_position = None
+            i = 0
+            while i < len(text):
+                # Check for special combinations FIRST
                 found_special = False
                 for combo, replacement in cls.SPECIAL_COMBINATIONS.items():
                     if text[i:i+len(combo)] == combo:
-                        logger.debug(f"Found special combo at position {i}: {combo} -> {replacement}")
-                        chars.append((replacement, False))
+                        chars.append(replacement)
                         i += len(combo)
                         found_special = True
                         break
@@ -127,68 +207,47 @@ class GurmukhiLegacy:
                 if found_special:
                     continue
 
-                # Process single character
                 char = text[i]
                 next_char = text[i + 1] if i + 1 < len(text) else None
-                logger.debug(f"Processing char at position {i}: {char}")
 
-                if char in cls.ANMOLLIPI_MAP:
-                    # Handle vowel carriers based on context
-                    if char == 'A' and next_char in ['w', 'Y', 'O']:
-                        logger.debug(f"Skipping vowel carrier A at position {i}")
-                        i += 1
-                        continue
-                    elif char == 'e' and next_char == 'I':
-                        logger.debug(f"Skipping vowel carrier e at position {i}")
-                        i += 1
-                        continue
-                    elif char == 'a' and next_char == 'u':
-                        logger.debug(f"Converting au to ਉ at position {i}")
-                        chars.append(('ਉ', False))
-                        i += 2
-                        continue
-                    elif char == 'a' and next_char == 'U':
-                        logger.debug(f"Converting aU to ਊ at position {i}")
-                        chars.append(('ਊ', False))
-                        i += 2
-                        continue
-                    
-                    # Handle sihari - store with next consonant
-                    if cls.ANMOLLIPI_MAP[char] == 'ਿ' and i + 1 < len(text):
-                        next_char_val = cls.ANMOLLIPI_MAP.get(text[i + 1])
-                        if next_char_val:
-                            logger.debug(f"Handling sihari with next char at position {i}")
-                            chars.append((next_char_val + 'ਿ', False))
-                            i += 2
-                            continue
-                    
-                    chars.append((cls.ANMOLLIPI_MAP[char], False))
-                elif char == 'a' and next_char in ['u', 'U']:
-                    logger.debug(f"Skipping 'a' part of vowel combo at position {i}")
-                    i += 1  # Only increment by 1 as the next char will be handled in next iteration
+                # Handle sihari
+                if char == 'i':  # sihari
+                    sihari_position = len(chars)  # Mark position for later insertion
+                    i += 1
                     continue
-                elif char != 'a':
-                    chars.append((char, False))
+
+                # Process regular characters first
+                if char in cls.ANMOLLIPI_MAP:
+                    base_pos = len(chars)
+                    chars.append(cls.ANMOLLIPI_MAP[char])
+                    
+                    # Look ahead for subjoined characters
+                    next_pos = i + 1
+                    while next_pos < len(text) and text[next_pos] in cls.SUBJOINED_MAP:
+                        chars.append(cls.SUBJOINED_MAP[text[next_pos]])
+                        next_pos += 1
+                    
+                    # Insert sihari after base and its subjoined characters
+                    if sihari_position is not None and sihari_position <= base_pos:
+                        chars.insert(len(chars), cls.ANMOLLIPI_MAP['i'])
+                        sihari_position = None
+                        
+                    i = next_pos
+                    continue
                 
-                # Always increment i if we haven't continued
                 i += 1
-                
-            except Exception as e:
-                logger.error(f"Error at position {i}: {str(e)}")
-                raise
 
-        logger.debug("Character processing complete, joining results")
-        result = ''.join(char[0] for char in chars)
+            # Add any remaining sihari
+            if sihari_position is not None:
+                chars.append(cls.ANMOLLIPI_MAP['i'])
 
-        # Handle line breaks and spacing
-        lines = result.split('\n')
-        formatted_lines = []
-        for line in lines:
-            if line.strip():
-                formatted_lines.append(line.strip())
-        
-        logger.debug("Formatting complete")
-        return '\n\n'.join(formatted_lines)
+        except Exception as e:
+            logger.error(f"Error at position {i}: {str(e)}")
+            raise
+
+        result = ''.join(chars)
+        lines = [line.strip() for line in result.split('\n') if line.strip()]
+        return unicodedata.normalize('NFC', '\n\n'.join(lines))
 
     @classmethod
     def detect_encoding(cls, text: str) -> str:
