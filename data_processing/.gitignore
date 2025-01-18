@@ -1,0 +1,14 @@
+# Ignore raw input files
+input/audio/raw/*
+input/text/*
+!input/audio/raw/.gitkeep
+!input/text/.gitkeep
+
+# Ignore processed output
+output/processed_data/*
+output/errors/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
