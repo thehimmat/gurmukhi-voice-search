@@ -4,7 +4,9 @@
 1. Standalone Operation
    - Public-facing web app
    - REST API for external use
-   - Importable Python package
+   - Published packages:
+     * gurmukhi-transliterator-py (PyPI)
+     * gurmukhi-transliterator-js (npm)
    - Integration with voice search app
 
 2. Input Formats

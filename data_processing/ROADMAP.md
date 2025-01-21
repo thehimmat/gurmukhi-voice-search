@@ -2,7 +2,7 @@
 
 ## Data Sources
 1. Audio Files
-   - Multiple page recordings to be split into verses
+   - Multiple ang recordings to be split into verses
    - Need to handle multiple readers/versions
    - Will need timestamp/silence detection for splitting
 
@@ -15,7 +15,7 @@
 ## Database Design (PostgreSQL)
 1. Core Tables
    - scriptures (SGGS, Dasam Granth, etc.)
-   - pages
+   - angs (correct terminology for pages)
    - verses
    - translations
    - commentaries
@@ -33,7 +33,7 @@
 1. Text Processing
    - PDF extraction and cleaning
    - Character encoding validation
-   - Structure detection (pages/verses)
+   - Structure detection (angs/verses)
    - Translation mapping
 
 2. Audio Processing

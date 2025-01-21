@@ -4,7 +4,7 @@ Audio processing module for scripture recordings.
 TODO:
 1. Implement audio file splitting based on timestamps/silence detection
 2. Add metadata extraction (duration, quality checks)
-3. Implement naming convention (page_XXX_verse_XXX.wav)
+3. Implement naming convention (ang_XXX_verse_XXX.wav)
 4. Add validation for audio quality and completeness
 5. Consider adding support for multiple readers/versions
 """

@@ -3,8 +3,8 @@ PDF processing module for legacy Gurmukhi text.
 
 TODO:
 1. Implement PDF text extraction
-2. Add cleaning for page numbers and formatting artifacts
-3. Implement page/verse structure detection
+2. Add cleaning for ang numbers and formatting artifacts
+3. Implement ang/verse structure detection
 4. Add validation for character encodings
 5. Consider handling different PDF formats/sources
 """

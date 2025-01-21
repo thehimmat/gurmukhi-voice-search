@@ -2,14 +2,14 @@
 
 ## Data Sources Overview
 1. Audio Files
-   - Format: Multiple page recordings (need splitting)
+   - Format: Multiple ang recordings (need splitting)
    - Source: Audio recordings of scripture readings
    - Challenge: Need to split into verse-level segments
 
 2. Legacy Gurmukhi Text
    - Format: PDF with formatting artifacts
    - Source: Complete scripture text in legacy format
-   - Challenge: Contains page numbers, TOC, border designs to filter
+   - Challenge: Contains ang numbers, TOC, border designs to filter
 
 3. Unicode Gurmukhi Text
    - Format: PDF with similar formatting issues
