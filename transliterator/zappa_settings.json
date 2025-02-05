@@ -1,0 +1,38 @@
+{
+    "prod": {
+        "app_function": "api.main.app",
+        "aws_region": "us-east-1",
+        "exclude": [
+            "boto3",
+            "botocore",
+            "dateutil",
+            "s3transfer",
+            "concurrent",
+            "*.git*",
+            "*.pytest_cache*",
+            "*.DS_Store",
+            "__pycache__",
+            "*.pyc",
+            "tests/",
+            "frontend/",
+            "node_modules/",
+            "**/node_modules/*",
+            "backend/",
+            "*.md",
+            "*.txt",
+            "venv/",
+            "package/",
+            "backup_files/",
+            "*.tar.gz",
+            "*.log"
+        ],
+        "profile_name": "default",
+        "project_name": "transliterator",
+        "runtime": "python3.9",
+        "s3_bucket": "zappa-gurmukhi-transliterator",
+        "cors": true,
+        "keep_warm": false,
+        "slim_handler": true,
+        "zip_exclude": ["*.exe", "*.zip"]
+    }
+}
