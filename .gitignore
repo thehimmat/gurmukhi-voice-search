@@ -102,3 +102,12 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Package locks (except root)
+**/package-lock.json
+!package-lock.json
+
+# Keep only root level package files
+**/package.json
+!/package.json
+!/frontend/package.json
