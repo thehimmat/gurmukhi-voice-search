@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Select } from 'antd';
+import { GurmukhiISO15919 } from '../utils/transliteration/iso15919';
+// import { GurmukhiPractical } from '../utils/transliteration/practical';
+import { GurmukhiLegacy } from '../utils/transliteration/legacy';
+import anvaad from 'anvaad-js';
 import './Transliterator.css';
+
+const { Option } = Select;
 
 interface TransliteratorProps {
   // Add any props if needed
@@ -7,107 +14,146 @@ interface TransliteratorProps {
 
 const Transliterator: React.FC<TransliteratorProps> = () => {
   const [input, setInput] = useState('');
+  const [inputType, setInputType] = useState<'gurmukhi' | 'ascii'>('gurmukhi');
   const [style, setStyle] = useState('iso15919');
   const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
-  // Add debounce to wait for user to finish typing
+  // Test Anvaad on component mount with full word
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      // Always call transliterate, even with empty input
-      transliterate(input, style);
-    }, 300); // Wait 300ms after last keystroke
-
-    return () => clearTimeout(timeoutId);
-  }, [input, style]);
-
-  const transliterate = async (text: string, style: string) => {
     try {
-      // If input is empty, clear output immediately
-      if (!text) {
-        setOutput('');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8000/transliterate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text, style }),
-      });
+      // Test with a complete word
+      const testWord = 'ਗੁਰਮੁਖੀ';
+      console.log('Testing Anvaad with:', testWord);
+      const testResult = anvaad.translit(testWord);
+      console.log('Anvaad test result:', testResult);
       
-      const data = await response.json();
-      if (data.result !== undefined) {  // Check for undefined instead of truthiness
-        setOutput(data.result);
-      } else if (data.error) {
-        setOutput(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      setOutput('Error connecting to server');
+      // Log available Anvaad methods
+      console.log('Available Anvaad methods:', Object.keys(anvaad));
+    } catch (e) {
+      console.error('Anvaad test failed:', e);
     }
+  }, []);
+
+  const detectInputType = (text: string): 'gurmukhi' | 'ascii' => {
+    const gurmukhiPattern = /[\u0A00-\u0A7F]/;
+    return gurmukhiPattern.test(text) ? 'gurmukhi' : 'ascii';
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setInput(newText);
-    // Remove immediate transliterate call
-    // transliterate will be called by useEffect after delay
+    setInputType(detectInputType(newText));
+    setError('');
   };
+
+  const transliterate = (text: string, style: string) => {
+    if (!text) {
+      setOutput('');
+      setError('');
+      return;
+    }
+
+    try {
+      let result = '';
+      const processedInput = inputType === 'ascii' 
+        ? GurmukhiLegacy.toUnicode(text, 'anmollipi')
+        : text;
+
+      console.log('Processing:', {
+        inputType,
+        originalText: text,
+        processedInput,
+        style
+      });
+
+      switch (style) {
+        case 'iso15919':
+          result = GurmukhiISO15919.toPhonetic(processedInput);
+          break;
+        case 'practical':
+          try {
+            // Try direct transliteration first
+            result = anvaad.translit(processedInput);
+            console.log('Direct Anvaad result:', result);
+            
+            // If no result, try alternative approach
+            if (!result) {
+              // Split into words and process each
+              const words = processedInput.split(' ');
+              result = words
+                .map(word => word ? anvaad.translit(word) : '')
+                .filter(Boolean)
+                .join(' ');
+              console.log('Word-by-word Anvaad result:', result);
+            }
+            
+            if (!result) {
+              throw new Error('Unable to transliterate with Anvaad');
+            }
+          } catch (anvaadError) {
+            console.error('Anvaad error:', anvaadError);
+            throw new Error(`Anvaad transliteration failed: ${anvaadError.message}`);
+          }
+          break;
+        case 'unicode':
+          result = processedInput;
+          break;
+        default:
+          throw new Error('Unsupported conversion type');
+      }
+      
+      setOutput(result);
+      setError('');
+    } catch (error) {
+      console.error('Transliteration error:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      setOutput('');
+    }
+  };
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      transliterate(input, style);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [input, style]);
 
   return (
     <div className="transliterator">
       <header className="App-header">
         <h1>Gurmukhi Transliterator</h1>
         <div className="style-selector">
-          <label>
-            <input
-              type="radio"
-              value="iso15919"
-              checked={style === 'iso15919'}
-              onChange={(e) => {
-                setStyle(e.target.value);
-                transliterate(input, e.target.value);
-              }}
-            />
-            ISO 15919
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="practical"
-              checked={style === 'practical'}
-              onChange={(e) => {
-                setStyle(e.target.value);
-                transliterate(input, e.target.value);
-              }}
-            />
-            Practical
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="legacy"
-              checked={style === 'legacy'}
-              onChange={(e) => {
-                setStyle(e.target.value);
-                transliterate(input, e.target.value);
-              }}
-            />
-            Roman Font to Gurmukhi
-          </label>
+          <Select
+            value={style}
+            onChange={(value) => {
+              setStyle(value);
+              transliterate(input, value);
+            }}
+            style={{ width: 200 }}
+          >
+            <Option value="iso15919">ISO 15919</Option>
+            <Option value="practical">Practical (Anvaad)</Option>
+            <Option value="unicode">Gurmukhi Unicode</Option>
+          </Select>
         </div>
         <div className="converter-container">
           <textarea
             ref={inputRef}
             value={input}
             onChange={handleTextareaChange}
-            placeholder={style === 'legacy' ? 
+            placeholder={inputType === 'ascii' ? 
               "Enter Roman font text (AnmolLipi) here..." : 
               "Enter Gurmukhi text here..."}
             rows={4}
             className="input-field"
           />
+          <div className="input-type-indicator">
+            Detected Input: {inputType === 'gurmukhi' ? 'Gurmukhi Unicode' : 'ASCII Roman'}
+          </div>
+          {error && <div className="error-message">{error}</div>}
           <div className="result-container">
             <div className="result-text" style={{ whiteSpace: 'pre-wrap' }}>
               {output || 'Type something to see conversion'}

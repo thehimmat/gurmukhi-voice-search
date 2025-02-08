@@ -141,43 +141,36 @@ export class GurmukhiPractical {
       if (char in this.MAPS.CONSONANTS) {
         result += this.MAPS.CONSONANTS[char];
         
-        // Check for vowel diacritics
-        if (nextChar && nextChar in this.MAPS.VOWEL_DIACRITICS) {
-          result += this.MAPS.VOWEL_DIACRITICS[nextChar];
-          i += 2;
-          continue;
-        }
-        // Check for modifiers (tippi, bindi, addak)
-        else if (nextChar && nextChar in this.MAPS.MODIFIERS) {
-          if (nextChar === 'ੰ' || nextChar === 'ਂ') {  // tippi or bindi
-            result += 'n';
-          } else if (nextChar === 'ੱ' && nextNextChar && nextNextChar in this.MAPS.CONSONANTS) {
-            // addak - double the following consonant
-            result += this.MAPS.CONSONANTS[nextNextChar];
+        const hasNukta = nextChar === '਼';
+        
+        if (hasNukta) {
+          // Handle decomposed form (base + nukta)
+          result += this.MAPS.CONSONANTS[char];
+          if (text[i + 2] !== '੍' && !(text[i + 2] in this.MAPS.VOWEL_DIACRITICS)) {
+            result += 'a';
           }
           i += 2;
-          continue;
+        } else {
+          // Handle regular consonant
+          result += this.MAPS.CONSONANTS[char];
+          
+          // Add inherent 'a' if:
+          // 1. Not followed by virama
+          // 2. Not followed by vowel diacritic
+          // 3. Not at end of word
+          if (nextChar !== '੍' && nextChar &&
+              !(nextChar in this.MAPS.VOWEL_DIACRITICS) && 
+              !([' ', '।', '॥'].includes(nextChar || '') || i === text.length - 1)) {
+            result += 'a';
+          }
+          i++;
         }
-        // Add inherent 'a' if no vowel follows
-        else if (!nextChar || !['੍', ' ', '।', '॥'].includes(nextChar)) {
-          result += 'a';
-        }
-        i++;
-        continue;
-      }
-
-      // Handle independent vowels
-      if (char in this.MAPS.VOWELS) {
-        result += this.MAPS.VOWELS[char];
-        i++;
-        continue;
-      }
-
-      // Handle vowel diacritics
-      if (char in this.MAPS.VOWEL_DIACRITICS) {
+      } else if (char in this.MAPS.VOWEL_DIACRITICS) {
         result += this.MAPS.VOWEL_DIACRITICS[char];
         i++;
-        continue;
+      } else if (char in this.MAPS.VOWELS) {
+        result += this.MAPS.VOWELS[char];
+        i++;
       }
 
       // Skip modifiers already handled
