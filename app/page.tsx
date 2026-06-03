@@ -51,7 +51,7 @@ export default function VoiceSearchPage() {
     }
   }, []);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback((lang = "pa-IN") => {
     if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
       setState({
         status: "error",
@@ -65,9 +65,12 @@ export default function VoiceSearchPage() {
     const recognition = new SR() as SpeechRecognition;
     recognitionRef.current = recognition;
 
-    recognition.lang = "pa-IN";
+    // pa-IN returns Gurmukhi script directly.
+    // en-US returns romanized text, which the API handles via romanToPhoneticKey.
+    recognition.lang = lang;
     recognition.interimResults = true;
     recognition.maxAlternatives = 3;
+    // continuous = false means it auto-stops after a pause in speech — no need to press stop
     recognition.continuous = false;
 
     setState({ status: "listening" });
@@ -85,7 +88,19 @@ export default function VoiceSearchPage() {
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      setState({ status: "error", message: `Speech error: ${event.error}` });
+      if (event.error === "network" && lang === "pa-IN") {
+        // Punjabi model unavailable — retry with English romanization
+        recognition.stop();
+        setState({ status: "idle" });
+        startListening("en-US");
+        return;
+      }
+      setState({
+        status: "error",
+        message: event.error === "not-allowed"
+          ? "Microphone access denied. Allow mic access in your browser settings."
+          : `Speech error: ${event.error}`,
+      });
     };
 
     recognition.onend = () => {
@@ -114,7 +129,7 @@ export default function VoiceSearchPage() {
 
       <div className="flex flex-col items-center gap-6 w-full max-w-lg">
         <button
-          onClick={isListening ? stopListening : startListening}
+          onClick={isListening ? stopListening : () => startListening()}
           disabled={isLoading}
           className={[
             "w-24 h-24 rounded-full flex items-center justify-center transition-all",
@@ -136,7 +151,7 @@ export default function VoiceSearchPage() {
 
         {isListening && (
           <p className="text-stone-400 text-sm animate-pulse">
-            Listening... speak a Gurmukhi word
+            Listening — speak a word, then pause
           </p>
         )}
 
@@ -150,7 +165,7 @@ export default function VoiceSearchPage() {
         <div className="flex gap-2 w-full">
           <input
             type="text"
-            placeholder="ਜਾਂ ਇੱਥੇ ਟਾਈਪ ਕਰੋ..."
+            placeholder="Type Gurmukhi or phonetic (e.g. waheguru)"
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && search(transcript)}
